@@ -13,7 +13,7 @@ def wait_for_event(client: MarathonClient, event: str, deployment_id: str):
                 return
 
 
-def wait_for_deployment(client: MarathonClient, deployment: Union[MarathonDeployment, dict]) -> bool:
+def wait_for_deployment(client: MarathonClient, deployment: Union[MarathonDeployment, dict], timeout: int) -> bool:
     def show_affected_apps(target_deploy):
         for aff in target_deploy.affected_apps:
             print('- {}: {}/ui/#/apps/{}/debug'.format(aff, srv, aff.replace('/', '%2F')))
@@ -44,6 +44,9 @@ def wait_for_deployment(client: MarathonClient, deployment: Union[MarathonDeploy
         while target in client.list_deployments():
             time.sleep(0.5)
             i += 0.5
+            if i > timeout * 60:
+              exit(1)
+              return False
             if i % 5 == 0:
                 print('.', end='')
                 sys.stdout.flush()

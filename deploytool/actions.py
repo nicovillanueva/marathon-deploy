@@ -8,24 +8,24 @@ from utils.events import wait_for_deployment, poll_deployments_for_app
 import utils.string_mangling as mangling
 
 
-def in_place_restart(client: MarathonClient, appid: str):
+def in_place_restart(client: MarathonClient, appid: str, timeout: int):
     pre = client.get_app(appid).instances
     d = client.scale_app(appid, 0)
     wait_for_deployment(client, d)
     print('Scaled {} down to 0'.format(appid))
     d = client.scale_app(appid, pre)
-    wait_for_deployment(client, d)
+    wait_for_deployment(client, d, timeout)
     print('{} back at {} again'.format(appid, pre))
 
 
-def scale_application(client: MarathonClient, appid: str, instances: int):
+def scale_application(client: MarathonClient, appid: str, instances: int, timeout: int):
     d = client.scale_app(appid, instances, force=True)
-    wait_for_deployment(client, d)
+    wait_for_deployment(client, d, timeout)
 
 
-def rolling_restart_app(client: MarathonClient, appid: str):
+def rolling_restart_app(client: MarathonClient, appid: str, timeout: int):
     d = client.restart_app(appid, force=True)
-    wait_for_deployment(client, d)
+    wait_for_deployment(client, d, timeout)
 
 
 def put_app(client: MarathonClient, definition: str, fullrollback: bool) -> str:
