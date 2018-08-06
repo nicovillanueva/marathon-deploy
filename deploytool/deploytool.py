@@ -31,10 +31,10 @@ def main():
         sys.exit(0)
 
     elif args.put is not None:
-        actions.put_app(c, args.put, args.fullrollback)
+        actions.put_app(c, args.put, args.fullrollback, timeout)
 
     elif args.tag is not None and check_appid(args.appid):
-        actions.update_app_tag(c, args.appid, args.tag)
+        actions.update_app_tag(c, args.appid, args.tag, timeout)
 
     elif args.restart and check_appid(args.appid):
         actions.rolling_restart_app(c, args.appid, timeout)
