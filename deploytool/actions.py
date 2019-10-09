@@ -8,27 +8,27 @@ from utils.events import wait_for_deployment, poll_deployments_for_app
 import utils.string_mangling as mangling
 
 
-def in_place_restart(client: MarathonClient, appid: str):
+def in_place_restart(client: MarathonClient, appid: str, timeout: int):
     pre = client.get_app(appid).instances
     d = client.scale_app(appid, 0)
-    wait_for_deployment(client, d)
+    wait_for_deployment(client, d, timeout)
     print('Scaled {} down to 0'.format(appid))
     d = client.scale_app(appid, pre)
-    wait_for_deployment(client, d)
+    wait_for_deployment(client, d, timeout)
     print('{} back at {} again'.format(appid, pre))
 
 
-def scale_application(client: MarathonClient, appid: str, instances: int):
+def scale_application(client: MarathonClient, appid: str, instances: int, timeout: int):
     d = client.scale_app(appid, instances, force=True)
-    wait_for_deployment(client, d)
+    wait_for_deployment(client, d, timeout)
 
 
-def rolling_restart_app(client: MarathonClient, appid: str):
+def rolling_restart_app(client: MarathonClient, appid: str, timeout: int):
     d = client.restart_app(appid, force=True)
-    wait_for_deployment(client, d)
+    wait_for_deployment(client, d, timeout)
 
 
-def put_app(client: MarathonClient, definition: str, fullrollback: bool) -> str:
+def put_app(client: MarathonClient, definition: str, fullrollback: bool, timeout: int) -> str:
     rollback_order = None
     if os.path.isdir(definition):
         prompt = input('The path {} is a directory. Deploy applications defined in it?\nType \'YES\''
@@ -61,12 +61,12 @@ def put_app(client: MarathonClient, definition: str, fullrollback: bool) -> str:
     a = MarathonApp.from_json(j)
     appid = a.id if a.id.startswith('/') else '/' + a.id
     if any(filter(lambda x: x.id == appid, client.list_apps())):
-        return _update_application(client, a, definition)
+        return _update_application(client, a, timeout, definition)
     else:
         return _create_application(client, a, definition)
 
 
-def _update_application(client: MarathonClient, app: MarathonApp,
+def _update_application(client: MarathonClient, app: MarathonApp, timeout: int,
                         definition_path: str, do_backup: bool = True) -> Union[str, bool]:
     if do_backup:
         if not os.path.isdir('./backups'):
@@ -85,10 +85,10 @@ def _update_application(client: MarathonClient, app: MarathonApp,
     # TODO: Handle failure
     # Return the deployed backup file to build rollback order, if necessary
     # or False if a user-initiated rollback completed successfully
-    return False if not wait_for_deployment(client, d) else backup_path
+    return False if not wait_for_deployment(client, d, timeout) else backup_path
 
 
-def _create_application(client: MarathonClient, app: MarathonApp, definition_path: str) -> Union[str, bool]:
+def _create_application(client: MarathonClient, app: MarathonApp, definition_path: str,  do_backup: bool = True) -> Union[str, bool]:
     print('\nCreating app: {} (from: {})'.format(app.id, definition_path))
     try:
         app = client.create_app(app.id, app)
@@ -120,7 +120,7 @@ def do_full_rollback(client: MarathonClient, rollback: list):
             _update_application(client, app, each, False)
         else:
             d = client.delete_app(each, True)
-            wait_for_deployment(client, d)
+            wait_for_deployment(client, d, timeout)
 
 
 def get_instances_amount(client: MarathonClient, appid: str) -> int:
@@ -130,14 +130,14 @@ def get_instances_amount(client: MarathonClient, appid: str) -> int:
         return -1
 
 
-def update_app_tag(client: MarathonClient, appid: str, new_tag: str):
+def update_app_tag(client: MarathonClient, appid: str, new_tag: str, timeout: int):
     app = client.get_app(appid)
     reg, img = mangling.split_image_name(app.container.docker.image)
     img, tag = mangling.split_image_tag(img)
     new_image = mangling.rebuild_image_name(reg, img, new_tag)
     app.container.docker.image = new_image
     d = client.update_app(appid, app, force=True)
-    wait_for_deployment(client, d)
+    wait_for_deployment(client, d, timeout)
 
 
 def list_applications(client: MarathonClient) -> list:

@@ -9,9 +9,17 @@ import actions
 
 __version__ = '2.0'
 
+global timeout
+timeout = 5
+
 
 def main():
+
     args = parse_arguments()
+    if args.timeout is not None:
+        global timeout
+        timeout = args.timeout
+    
 
     if args.appid is not None:
         args.appid = args.appid if args.appid.startswith('/') else '/' + args.appid
@@ -23,19 +31,19 @@ def main():
         sys.exit(0)
 
     elif args.put is not None:
-        actions.put_app(c, args.put, args.fullrollback)
+        actions.put_app(c, args.put, args.fullrollback, timeout)
 
     elif args.tag is not None and check_appid(args.appid):
-        actions.update_app_tag(c, args.appid, args.tag)
+        actions.update_app_tag(c, args.appid, args.tag, timeout)
 
     elif args.restart and check_appid(args.appid):
-        actions.rolling_restart_app(c, args.appid)
+        actions.rolling_restart_app(c, args.appid, timeout)
 
     elif args.inplacerestart and check_appid(args.appid):
-        actions.in_place_restart(c, args.appid)
+        actions.in_place_restart(c, args.appid, timeout)
 
     elif args.scale is not None and check_appid(args.appid):
-        actions.scale_application(c, args.appid, args.scale)
+        actions.scale_application(c, args.appid, args.scale, timeout)
 
     elif args.instances and check_appid(args.appid):
         print(actions.get_instances_amount(c, args.appid))
@@ -97,6 +105,7 @@ def parse_arguments():
     args.add_argument('--dumpall', action='store_true', help='Save all applications JSONs to a folder '
                                                              '(default: ./backup_<date>')
     args.add_argument('--version', '-v', help='Show version and exit')
+    args.add_argument('--timeout', '-t', type=int, help='Timeout for deployments in minutes')
 
     return args.parse_args()
 
