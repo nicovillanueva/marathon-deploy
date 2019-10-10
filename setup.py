@@ -16,8 +16,8 @@ setup(
     packages=['marathon_deploy', 'marathon_deploy.utils'],
     install_requires=['marathon>=0.9.3'],
     entry_points={
-        'console_scripts': ['deploy-marathon = marathon_deploy.deploytool:main',
-                            'check-marathon = marathon_deploy.checkappdeploy:main'],
+        'console_scripts': ['marathon-deploy = marathon_deploy.deploytool:main',
+                            'marathon-check = marathon_deploy.checkappdeploy:main'],
     },
     include_package_data=True,
     zip_safe=False

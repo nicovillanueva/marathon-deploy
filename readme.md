@@ -8,7 +8,7 @@
 - Requires Python 3.7 or higher
 - Dependencies in `requirements.txt`: `pip3 install -r requirements.txt`
 - Use of virtualenv is recommended as always
-- Highly recommended to use MiniMesos for local testing (feel free to use the minimesosFile)
+- For testing against a local cluster you may use [minidcos](https://github.com/dcos/dcos-e2e#minidc-os-cli)
 
 ## Options
 - `--marathon`: Marathon to connect to. Supports comma-separated hosts: `http://m1:8080,http://m2:8080,http://m3:8080`. Defaults to `http://localhost:8080`.
@@ -43,14 +43,17 @@ If you do *not* force the cancellation (let the rollback deployment flow), the r
 
 ![alt text](deployment-flow.png "Deployment flow")
 
-## Pypi publishing
+## Release new version
 
-To releasing a new version, with a valid `~/.pypirc` configured for authentication:
+To release a new version, with a valid `~/.pypirc` configured for authentication:
 
-1. edit the version in `marathon_deploy/version.py`
-2. `python setup.py sdist`
-3. `pip install twine && twine upload dist/*`
-4. `git commit -am "Version $(cat marathon_deploy/version.py)" && git tag $(cat marathon_deploy/version.py) && git push && git push --tags`
+1. Have Twine installed: `pip install twine`
+2. Edit the version number in `marathon_deploy/version.py`
+3. Run `python setup.py sdist` to build a new package
+4. (Optional) Install it locally using `pip install dist/marathon-deploy-$(cat marathon_deploy/version.py).tar.gz`
+5. Run `twine upload dist/*`
+6. Make the appropiate changes to the `CHANGELOG.md`
+6. Commit the new version to Git: `git add CHANGELOG.MD marathon_deploy/version.py && git commit -am "Version $(cat marathon_deploy/version.py)" && git tag $(cat marathon_deploy/version.py) && git push --tags`
 
 ## TODO
 - Verify if the target app is a Docker container when using `--tag`
@@ -59,4 +62,3 @@ To releasing a new version, with a valid `~/.pypirc` configured for authenticati
 - On failed deployment, show last task failure message (stderr)
 - BUG: --list blows up when there are non-Docker apps in Marathon
 - BUG: Ordering is broken with 10> apps (ordering as string, so, for example, `19` goes before `2`)
-- Standalone building goes into Makefile

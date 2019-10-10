@@ -14,7 +14,7 @@ def main():
     args = parse_arguments()
 
     if args.appid is None:
-        print("appid must be defined ")
+        print("appid must be defined")
         sys.exit(1)
 
     client = create_client(args.marathon, args.user, args.password, args.https_verify)
@@ -26,10 +26,10 @@ def main():
         my_app = client.get_app(args.appid)
         if my_app.tasks_running >= 1 and my_app.tasks_healthy >= 1:
             check = False
-            print("APP deploy on Marathon ")
+            print("APP deploy on Marathon")
         else:
             if my_app.tasks_staged >= 1:
-                print("APP in staging mode ")
+                print("APP in staging mode")
 
         time.sleep(1)
 
