@@ -25,7 +25,7 @@ def main():  # pylint: disable=too-many-branches
 
     if args.version:
         version_filepath = os.path.join(os.path.dirname(__file__),
-                                        'marathon_deploy', 'version.py')
+                                        'marathon_deploy', 'version.txt')
         with open(version_filepath) as version_file:
             print(version_file.read())
         sys.exit(0)
