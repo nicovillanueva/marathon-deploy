@@ -17,6 +17,13 @@ def main():
         print("appid must be defined ")
         sys.exit(1)
 
+    if args.version:
+        version_filepath = os.path.join(os.path.dirname(__file__),
+                                        'marathon_deploy', 'version.py')
+        with open(version_filepath) as version_file:
+            print(version_file.read())
+        sys.exit(0)
+
     client = create_client(args.marathon, args.user, args.password, args.https_verify)
 
     time.sleep(20)
