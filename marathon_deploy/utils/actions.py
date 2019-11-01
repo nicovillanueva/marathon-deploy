@@ -3,10 +3,10 @@ import json
 import sys
 import time
 from typing import Union
+from itertools import takewhile
 
 from marathon import MarathonClient, MarathonApp, MarathonHttpError
 from marathon_deploy.utils.events import wait_for_deployment, poll_deployments_for_app
-import marathon_deploy.utils.string_mangling as mangling
 
 
 def in_place_restart(client: MarathonClient, appid: str):
@@ -17,16 +17,6 @@ def in_place_restart(client: MarathonClient, appid: str):
     deployment = client.scale_app(appid, pre)
     wait_for_deployment(client, deployment)
     print('{} back at {} again'.format(appid, pre))
-
-
-def scale_application(client: MarathonClient, appid: str, instances: int):
-    deployment = client.scale_app(appid, instances, force=True)
-    wait_for_deployment(client, deployment)
-
-
-def rolling_restart_app(client: MarathonClient, appid: str):
-    deployment = client.restart_app(appid, force=True)
-    wait_for_deployment(client, deployment)
 
 
 def put_app(client: MarathonClient, definition_path: str, fullrollback: bool) -> str:
@@ -70,7 +60,10 @@ def _update_application(client: MarathonClient, app: MarathonApp,
             os.mkdir('./backups/')
             print('Created backups directory')
         backup = client.get_app(app.id).to_json()
-        backup_path = './backups/{}_{}.json'.format(mangling.appid_to_filename(app.id),
+        if app.id.startswith('/'):
+            appid = appid[1:]
+        appid = appid.replace('/', '_').replace('.', '')
+        backup_path = './backups/{}_{}.json'.format(appid,
                                                     time.strftime("%Y-%m-%d_%H:%M:%S"))
         with open(backup_path, 'w') as backup_file:
             backup_file.write(backup)
@@ -127,12 +120,20 @@ def get_instances_amount(client: MarathonClient, appid: str) -> int:
         return -1
 
 
-def update_app_tag(client: MarathonClient, appid: str, new_tag: str):
+def _replace_tag_version(imagename: str, new_tag: str) -> str:
+    tagname = list(takewhile(lambda x: x != ':', imagename[::-1]))[::-1]
+    if '/' in tagname:
+        return f"{imagename}:{new_tag}"
+    return imagename.replace(''.join(tagname), new_tag)
+
+
+def update_docker_tag(client: MarathonClient, appid: str, new_tag: str):
     app = client.get_app(appid)
-    reg, img = mangling.split_image_name(app.container.docker.image)
-    img, _ = mangling.split_image_tag(img)
-    new_image = mangling.rebuild_image_name(reg, img, new_tag)
-    app.container.docker.image = new_image
+    if app.container.type != 'DOCKER':
+        print('Only docker images can be retagged')
+        return
+    new_imagename = _replace_tag_version(app.container.docker.image, new_tag)
+    app.container.docker.image = new_imagename
     deployment = client.update_app(appid, app, force=True)
     wait_for_deployment(client, deployment)
 

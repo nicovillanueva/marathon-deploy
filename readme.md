@@ -8,7 +8,7 @@
 - Requires Python 3.7 or higher
 - Dependencies in `requirements.txt`: `pip3 install -r requirements.txt`
 - Use of virtualenv is recommended as always
-- For testing against a local cluster you may use [minidcos](https://github.com/dcos/dcos-e2e#minidc-os-cli)
+- For testing against a local cluster you may use [mesos-mini](https://hub.docker.com/r/mesos/mesos-mini)
 
 ## Options
 - `--marathon`: Marathon to connect to. Supports comma-separated hosts: `http://m1:8080,http://m2:8080,http://m3:8080`. Defaults to `http://localhost:8080`.
@@ -62,3 +62,4 @@ To release a new version, with a valid `~/.pypirc` configured for authentication
 - On failed deployment, show last task failure message (stderr)
 - BUG: --list blows up when there are non-Docker apps in Marathon
 - BUG: Ordering is broken with 10> apps (ordering as string, so, for example, `19` goes before `2`)
+- App deletion

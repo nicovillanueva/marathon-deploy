@@ -1,1 +1,1 @@
-marathon>=0.9.3
+marathon>=0.11.0
